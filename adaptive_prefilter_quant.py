@@ -95,21 +95,25 @@ def adaptive_prefilter_quant(N,P,olap,q):
 	filter_output=np.zeros((N,num_blocks)).astype(float)
 	filtered_spectrum=np.zeros((N,num_blocks)).astype(complex)
 	input_spectrum=np.zeros((N,num_blocks)).astype(complex)
+	norm_coeff=np.zeros(num_blocks).astype(float)
 	for n in range(num_blocks):
 		if n<num_blocks-1:
 			rxx=psycho(z[(n+1)*N:(n+2)*N],16000,N)
 			reflex_coef_next,count=levinson_durbin(rxx,P)
 			filt_lattice[:,n+1]=reflex_coef_next
 		tmp_latticefiltered,tmp_state=lattice_firfilter(z[n*N:n*N+N],reflex_coef_current,reflex_coef_old,reflex_coef_next,olap,state)
+		# Divide by sqrt (rxx[0]) -> normalization
+		tmp_latticefitered_norm=tmp_latticefiltered / np.sqrt(rxx[0])
 		state=tmp_state
 		tmp_inpspectrum=np.fft.fft(z[n*N:n*N+N])
-		tmp_spectrum=np.fft.fft(tmp_latticefiltered)
-		tmp_quantized=np.rint(tmp_latticefiltered/q)
+		tmp_spectrum=np.fft.fft(tmp_latticefitered_norm)
+		tmp_quantized=np.rint(tmp_latticefitered_norm/q)
 		reflex_coef_old=reflex_coef_current
 		reflex_coef_current=reflex_coef_next	
 		filter_output[:,n]=tmp_quantized
 		filtered_spectrum[:,n]=tmp_spectrum
-		input_spectrum[:,n]=tmp_inpspectrum	
+		input_spectrum[:,n]=tmp_inpspectrum
+		norm_coeff[n]=np.sqrt(rxx[0])
 	plt.plot(np.reshape(filter_output,N*num_blocks,'f'),label="pre-filter output")
 	plt.legend()
 	towav=np.reshape(filter_output,N*num_blocks,'f').astype(float)
@@ -119,4 +123,4 @@ def adaptive_prefilter_quant(N,P,olap,q):
 	towav=np.int16(towav)	
 	print avg_bits
 	scipy.io.wavfile.write('filt_quantized.wav',16000,q*towav)
-	return filt_lattice,filter_output,olap,filtered_spectrum,input_spectrum
+	return filt_lattice,filter_output,olap,filtered_spectrum,input_spectrum, norm_coeff

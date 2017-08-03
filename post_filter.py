@@ -1,4 +1,4 @@
-def post_filter(fil_coef,filtered,olap,fs):
+def post_filter(fil_coef,filtered,olap,fs, norm_coeff):
 # Author : K Suresh sureshk@ieee.org
 # Adaptive  Post Filtering, inverse filter for pre-filtered signal	
 # Interpolates Reflex coefficients across Frame 
@@ -80,12 +80,12 @@ def post_filter(fil_coef,filtered,olap,fs):
 	for n in range(num_blocks):
 		if n<num_blocks-1:
 			reflex_coef_next=fil_coef[:,n+1]
-		tmp_quantized=filtered[:,n]
+		tmp_quantized=filtered[:,n]*norm_coeff[n]
 		tmp_recon,tmp_b=lattice_iirfilter(tmp_quantized,reflex_coef_current,reflex_coef_old,reflex_coef_next,olap,b_prev)
 		b_prev=tmp_b
 		reflex_coef_old=reflex_coef_current
 		reflex_coef_current=reflex_coef_next
-		reconst=np.append(reconst,tmp_recon)		
+		reconst=np.append(reconst,tmp_recon)
 	reconst=np.int16(reconst)
 	scipy.io.wavfile.write('reconstructed.wav',fs,reconst)
 	plt.plot(reconst,label="reconstructed")

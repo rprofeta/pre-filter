@@ -1,0 +1,16 @@
+
+
+	filter_lattice,filter_output,olap=adaptive_prefilter(N,P,olap):
+
+	Adaptive Pre Filter, Quantization 	
+	Interpolates Reflex coefficients across Frame 
+	N = Frame Size, P = Filter Order, olap = Interpolation Depth 
+	Returns filt_lattice=filter coefficients (ki),filter_output=filtered signal,olap = extend of interpolation used 
+
+	reconstructed=post_filter(fil_coef,filtered,olap):
+
+	Adaptive  Post Filtering	
+	Interpolates Reflex coefficients across Frame 
+	fil_coef=filter coefficients in clolumns, filtered = filtered frames in columns,
+	olap = Interpolation Depth 
+	Returns reconstructed signal 
